@@ -42,11 +42,12 @@ export const Chatbot = ({ dashboardData }) => {
   return (
     <>
       <button 
-        className="btn btn-primary"
+        className="chat-fab"
         style={{ 
           position: 'fixed', bottom: '2rem', right: '2rem', 
           width: '60px', height: '60px', borderRadius: '30px', 
-          boxShadow: 'var(--shadow-lg)', zIndex: 100 
+          zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.3s'
         }}
         onClick={() => setIsOpen(!isOpen)}
       >

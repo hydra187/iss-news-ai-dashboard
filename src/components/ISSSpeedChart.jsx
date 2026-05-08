@@ -37,12 +37,12 @@ export const ISSSpeedChart = ({ data }) => {
       {
         label: 'ISS Speed (km/h)',
         data: data.map(d => d.speed),
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        borderColor: '#2dd4bf',
+        backgroundColor: 'rgba(45, 212, 191, 0.2)',
         fill: true,
         tension: 0.4, // Smooth curve
         pointRadius: 3,
-        pointBackgroundColor: '#3b82f6',
+        pointBackgroundColor: '#2dd4bf',
       },
     ],
   };

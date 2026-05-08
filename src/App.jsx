@@ -5,25 +5,15 @@ import { NewsDistributionChart } from './components/NewsDistributionChart';
 import { NewsList } from './components/NewsList';
 import { Chatbot } from './components/Chatbot';
 import { fetchISSLocation, fetchAstronauts, fetchLocationName, fetchNews, calculateDistance } from './utils/api';
-import { Satellite, Users, Activity, Globe, Zap, Moon, Sun } from 'lucide-react';
+import { Navigation, MapPin, Activity, Users, Sun, Moon } from 'lucide-react';
+import { motion } from 'framer-motion';
 import './index.css';
 
 function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [theme, setTheme] = useState('dark');
   const [issData, setIssData] = useState({ currentPosition: null, path: [], speedHistory: [], locationName: 'Scanning...', astronauts: null });
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const [toast, setToast] = useState(null);
-
-  useEffect(() => {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const updateISSData = useCallback(async () => {
     try {
@@ -35,7 +25,7 @@ function App() {
           const dist = calculateDistance(prev.currentPosition.lat, prev.currentPosition.lon, position.lat, position.lon);
           const timeHours = (position.timestamp - prev.currentPosition.timestamp) / 3600;
           if (timeHours > 0) speed = dist / timeHours;
-        } else { speed = 28000; }
+        } else { speed = 25000; }
         
         const posWithSpeed = { ...position, speed };
         const newSpeedHistory = [...prev.speedHistory, { speed, timestamp: position.timestamp }].slice(-30);
@@ -58,22 +48,21 @@ function App() {
     return () => clearInterval(interval);
   }, [updateISSData]);
 
-  const loadNews = async (force = false) => {
+  const loadNews = async () => {
     setNewsLoading(true);
     try {
       const cached = localStorage.getItem('newsData');
       const time = localStorage.getItem('newsTime');
-      if (!force && cached && time && (Date.now() - parseInt(time) < 900000)) {
+      if (cached && time && (Date.now() - parseInt(time) < 900000)) {
         setNews(JSON.parse(cached));
       } else {
         const fresh = await fetchNews('general');
         setNews(fresh);
         localStorage.setItem('newsData', JSON.stringify(fresh));
         localStorage.setItem('newsTime', Date.now().toString());
-        showToast('DATABANKS UPDATED');
       }
     } catch (err) {
-      showToast('FEED ERROR');
+      console.error(err);
     } finally { setNewsLoading(false); }
   };
 
@@ -81,102 +70,110 @@ function App() {
 
   return (
     <div className="app-wrapper">
-      {/* Top Navigation / Command Header */}
       <nav className="top-nav">
-        <div className="logo-container">
-          <Satellite size={32} color="var(--accent-cyan)" />
-          <span className="logo-text">ORBITAL COMMAND</span>
-          <span className="live-indicator"><div style={{width:8, height:8, borderRadius:4, background:'#ef4444'}}></div> LIVE FEED</span>
+        <div>
+          <div className="subtitle">LIVE ORBITAL DASHBOARD</div>
+          <h1 style={{ fontSize: '2.5rem', color: 'var(--accent-cyan)' }}>Orbital Intelligence Dashboard</h1>
         </div>
-        <button className="btn-icon-cyber" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
       </nav>
 
-      <main className="dashboard-grid">
+      <main style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
-        {/* Left Sidebar - Telemetry */}
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="panel">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-              <Zap size={20} /> Telemetry Data
-            </h3>
-            {issData.currentPosition ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Velocity</div>
-                  <div className="text-number" style={{ fontSize: '2.5rem', color: 'var(--accent-cyan)' }}>
-                    {Math.round(issData.currentPosition.speed).toLocaleString()} <span style={{fontSize: '1rem'}}>KM/H</span>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Coordinates</div>
-                  <div className="text-number" style={{ fontSize: '1.2rem' }}>LAT: {issData.currentPosition.lat.toFixed(4)}°</div>
-                  <div className="text-number" style={{ fontSize: '1.2rem' }}>LON: {issData.currentPosition.lon.toFixed(4)}°</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Sector</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--accent-purple)' }}>{issData.locationName}</div>
-                </div>
-              </div>
-            ) : <div className="skeleton" style={{ height: '200px' }}></div>}
-          </div>
-
-          <div className="panel">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-              <Users size={20} /> Crew Manifest
-            </h3>
-            {issData.astronauts ? (
+        {/* Top Section: Map & Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '1.5rem' }}>
+          <motion.div className="panel" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <div>
-                <div className="text-number" style={{ fontSize: '2rem', marginBottom: '1rem', color: '#fff' }}>
-                  {issData.astronauts.count} <span style={{fontSize: '1rem', color: 'var(--text-muted)'}}>ACTIVE</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {issData.astronauts.people.map((p, i) => (
-                    <div key={i} style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderLeft: '2px solid var(--accent-purple)', fontSize: '1.1rem', fontWeight: 500 }}>
-                      {p.name}
-                    </div>
-                  ))}
+                <div style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 600, letterSpacing: '1px' }}>ISS MAP</div>
+                <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>Live position and trajectory</h3>
+              </div>
+            </div>
+            <ISSMap currentPosition={issData.currentPosition} path={issData.path} />
+          </motion.div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <motion.div className="panel" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+              <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'var(--accent-cyan)' }}>
+                <Navigation size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1px' }}>COORDINATES</div>
+                {issData.currentPosition ? (
+                  <div className="text-number" style={{ fontSize: '1.2rem' }}>{issData.currentPosition.lat.toFixed(3)}, {issData.currentPosition.lon.toFixed(3)}</div>
+                ) : <div className="skeleton" style={{ width: '120px', height: '20px' }}></div>}
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Open Notify API</div>
+              </div>
+            </motion.div>
+
+            <motion.div className="panel" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+              <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'var(--accent-cyan)' }}>
+                <MapPin size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1px' }}>NEAREST PLACE</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{issData.locationName}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{issData.path.length} positions tracked</div>
+              </div>
+            </motion.div>
+
+            <motion.div className="panel" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+              <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'var(--accent-cyan)' }}>
+                <Activity size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1px' }}>ISS SPEED</div>
+                {issData.currentPosition ? (
+                  <div className="text-number" style={{ fontSize: '1.2rem' }}>{Math.round(issData.currentPosition.speed).toLocaleString()} km/h</div>
+                ) : <div className="skeleton" style={{ width: '100px', height: '20px' }}></div>}
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Calculated with Haversine distance</div>
+              </div>
+            </motion.div>
+
+            <motion.div className="panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1 }} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1px' }}>CREW</div>
+                {issData.astronauts ? (
+                  <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{issData.astronauts.count} people in space</div>
+                ) : <div className="skeleton" style={{ width: '140px', height: '20px', marginBottom: '4px' }}></div>}
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'rgba(45, 212, 191, 0.1)', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                  {issData.astronauts ? issData.astronauts.people.map(p => p.name).join(', ') : 'Loading manifest...'}
                 </div>
               </div>
-            ) : <div className="skeleton" style={{ height: '150px' }}></div>}
+              <Users size={24} color="var(--text-muted)" />
+            </motion.div>
           </div>
-        </aside>
+        </div>
 
-        {/* Center - Main Display */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="panel" style={{ padding: '0.5rem' }}>
-            <ISSMap currentPosition={issData.currentPosition} path={issData.path} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="panel">
-              <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-muted)' }}><Activity size={16} style={{display:'inline', verticalAlign:'middle'}}/> VELOCITY LOG</h4>
-              <ISSSpeedChart data={issData.speedHistory} />
+        {/* Middle Section: Charts */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <motion.div className="panel" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 600, letterSpacing: '1px' }}>SPEED CHART</div>
+              <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>Last 30 measurements</h3>
             </div>
-            <div className="panel">
-              <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-muted)' }}><Globe size={16} style={{display:'inline', verticalAlign:'middle'}}/> INTEL SOURCES</h4>
-              <NewsDistributionChart news={news} />
+            <ISSSpeedChart data={issData.speedHistory} />
+          </motion.div>
+          <motion.div className="panel" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 600, letterSpacing: '1px' }}>NEWS DISTRIBUTION</div>
+              <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>Articles per category</h3>
             </div>
-          </div>
-        </section>
+            <NewsDistributionChart news={news} />
+          </motion.div>
+        </div>
 
-        {/* Right Sidebar - Intel Feed */}
-        <aside className="panel" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-            <Globe size={20} /> Global Intel
-          </h3>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            <NewsList news={news} loading={newsLoading} onRefresh={() => loadNews(true)} />
+        {/* Bottom Section: News */}
+        <motion.div className="panel" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.7 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 600, letterSpacing: '1px' }}>LATEST NEWS</div>
+              <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>10 current articles</h3>
+            </div>
           </div>
-        </aside>
+          <NewsList news={news} loading={newsLoading} />
+        </motion.div>
 
       </main>
-
-      {toast && (
-        <div className="toast-container">
-          <div className="toast">{toast}</div>
-        </div>
-      )}
 
       <Chatbot dashboardData={{ iss: { ...issData.currentPosition, locationName: issData.locationName, peopleCount: issData.astronauts?.count }, news: news.slice(0,5) }} />
     </div>

@@ -19,10 +19,10 @@ export const NewsDistributionChart = ({ news }) => {
   const labels = Object.keys(sourceCount);
   const dataValues = Object.values(sourceCount);
 
-  // Generate some nice colors based on accents
+  // Cyan and Orange matching the screenshot theme
   const colors = [
-    '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b',
-    '#10b981', '#06b6d4', '#6366f1', '#a855f7', '#d946ef'
+    '#2dd4bf', '#fb923c', '#818cf8', '#f472b6', '#a78bfa',
+    '#34d399', '#fcd34d', '#38bdf8', '#fb7185', '#c084fc'
   ];
 
   const data = {
@@ -32,9 +32,9 @@ export const NewsDistributionChart = ({ news }) => {
         label: '# of Articles',
         data: dataValues,
         backgroundColor: colors.slice(0, labels.length),
-        borderColor: 'var(--bg-secondary)',
-        borderWidth: 2,
-        hoverOffset: 4
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverOffset: 6
       },
     ],
   };
