@@ -1,4 +1,4 @@
-const ISS_BASE_URL = 'http://api.open-notify.org';
+const ISS_BASE_URL = 'https://corsproxy.io/?http://api.open-notify.org';
 
 // Calculate distance using Haversine formula
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
