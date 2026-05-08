@@ -54,28 +54,22 @@ export const fetchLocationName = async (lat, lon) => {
 };
 
 export const fetchNews = async (category = 'general') => {
-  const apiKey = import.meta.env.VITE_NEWS_API_KEY;
-  if (!apiKey) {
-    throw new Error("News API Key is missing. Please add VITE_NEWS_API_KEY to your .env file.");
-  }
-  
   try {
-    // Using GNews API as the alternative
-    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&max=10&apikey=${apiKey}`;
+    // Route through our own serverless function to avoid CORS issues on Vercel
+    const url = `/api/news?category=${category}`;
     const response = await fetch(url);
     const data = await response.json();
     
     if (data.articles) {
-      // Map GNews format to match what our components expect (urlToImage -> image, source.name)
       return data.articles.map(article => ({
         ...article,
-        urlToImage: article.image // GNews uses 'image' instead of 'urlToImage'
+        urlToImage: article.image
       }));
     } else {
-      throw new Error(data.errors?.[0] || "Failed to fetch news");
+      throw new Error(data.errors?.[0] || data.error || 'Failed to fetch news');
     }
   } catch (error) {
-    console.error("Error fetching news:", error);
+    console.error('Error fetching news:', error);
     throw error;
   }
 };
