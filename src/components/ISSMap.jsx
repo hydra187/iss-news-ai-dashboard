@@ -14,13 +14,13 @@ const RecenterAutomatically = ({ lat, lon }) => {
 // Professional ISS SVG Marker
 const customIcon = new L.DivIcon({
   className: 'custom-iss-icon',
-  html: \`
+  html: `
     <div style="background: rgba(251, 146, 60, 0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #fb923c; box-shadow: 0 0 15px rgba(251, 146, 60, 0.4);">
       <div style="background: #fb923c; color: #000; font-size: 10px; font-weight: bold; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
         ISS
       </div>
     </div>
-  \`,
+  `,
   iconSize: [40, 40],
   iconAnchor: [20, 20],
   popupAnchor: [0, -20],
