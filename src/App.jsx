@@ -19,6 +19,7 @@ function App() {
   const [issData, setIssData] = useState({ currentPosition: null, path: [], speedHistory: [], locationName: 'Scanning...', astronauts: null });
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const updateISSData = useCallback(async () => {
     try {
@@ -54,21 +55,30 @@ function App() {
   }, [updateISSData]);
 
   const loadNews = async (force = false) => {
+    if (force) setIsRefreshing(true);
     setNewsLoading(true);
     try {
+      if (force) {
+        // Clear localStorage cache so Vercel CDN bypass works
+        localStorage.removeItem('newsData');
+        localStorage.removeItem('newsTime');
+      }
       const cached = localStorage.getItem('newsData');
       const time = localStorage.getItem('newsTime');
       if (!force && cached && time && (Date.now() - parseInt(time) < 900000)) {
         setNews(JSON.parse(cached));
       } else {
-        const fresh = await fetchNews('general');
+        const fresh = await fetchNews('general', force);
         setNews(fresh);
         localStorage.setItem('newsData', JSON.stringify(fresh));
         localStorage.setItem('newsTime', Date.now().toString());
       }
     } catch (err) {
       console.error(err);
-    } finally { setNewsLoading(false); }
+    } finally {
+      setNewsLoading(false);
+      setIsRefreshing(false);
+    }
   };
 
   useEffect(() => { loadNews(); }, []);
@@ -83,10 +93,12 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button
             onClick={() => loadNews(true)}
+            disabled={isRefreshing}
             title="Refresh News"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'var(--accent-cyan)', padding: '0.6rem', borderRadius: '8px', display:'flex', alignItems:'center', gap:'6px', fontSize:'0.85rem', cursor:'pointer' }}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'var(--accent-cyan)', padding: '0.6rem 1rem', borderRadius: '8px', display:'flex', alignItems:'center', gap:'6px', fontSize:'0.85rem', cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1, transition: 'all 0.2s' }}
           >
-            <RefreshCw size={16} /> Refresh
+            <RefreshCw size={16} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </button>
           <button
             onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}

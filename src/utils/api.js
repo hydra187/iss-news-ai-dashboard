@@ -53,11 +53,12 @@ export const fetchLocationName = async (lat, lon) => {
   }
 };
 
-export const fetchNews = async (category = 'general') => {
+export const fetchNews = async (category = 'general', bust = false) => {
   try {
     // Route through our own serverless function to avoid CORS issues on Vercel
-    const url = `/api/news?category=${category}`;
-    const response = await fetch(url);
+    const ts = bust ? `&_t=${Date.now()}` : '';
+    const url = `/api/news?category=${category}${ts}`;
+    const response = await fetch(url, bust ? { cache: 'no-store' } : {});
     const data = await response.json();
     
     if (data.articles) {
