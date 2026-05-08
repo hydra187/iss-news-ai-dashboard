@@ -5,12 +5,17 @@ import { NewsDistributionChart } from './components/NewsDistributionChart';
 import { NewsList } from './components/NewsList';
 import { Chatbot } from './components/Chatbot';
 import { fetchISSLocation, fetchAstronauts, fetchLocationName, fetchNews, calculateDistance } from './utils/api';
-import { Navigation, MapPin, Activity, Users, Sun, Moon } from 'lucide-react';
+import { Navigation, MapPin, Activity, Users, Sun, Moon, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import './index.css';
 
 function App() {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
   const [issData, setIssData] = useState({ currentPosition: null, path: [], speedHistory: [], locationName: 'Scanning...', astronauts: null });
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -48,12 +53,12 @@ function App() {
     return () => clearInterval(interval);
   }, [updateISSData]);
 
-  const loadNews = async () => {
+  const loadNews = async (force = false) => {
     setNewsLoading(true);
     try {
       const cached = localStorage.getItem('newsData');
       const time = localStorage.getItem('newsTime');
-      if (cached && time && (Date.now() - parseInt(time) < 900000)) {
+      if (!force && cached && time && (Date.now() - parseInt(time) < 900000)) {
         setNews(JSON.parse(cached));
       } else {
         const fresh = await fetchNews('general');
@@ -69,11 +74,28 @@ function App() {
   useEffect(() => { loadNews(); }, []);
 
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper" data-theme={theme}>
       <nav className="top-nav">
         <div>
-          <div className="subtitle">LIVE ORBITAL DASHBOARD</div>
+          <div className="subtitle"><span className="live-dot"></span> LIVE ORBITAL DASHBOARD</div>
           <h1 style={{ fontSize: '2.5rem', color: 'var(--accent-cyan)' }}>Orbital Intelligence Dashboard</h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => loadNews(true)}
+            title="Refresh News"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'var(--accent-cyan)', padding: '0.6rem', borderRadius: '8px', display:'flex', alignItems:'center', gap:'6px', fontSize:'0.85rem', cursor:'pointer' }}
+          >
+            <RefreshCw size={16} /> Refresh
+          </button>
+          <button
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+            title="Toggle theme"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'var(--accent-cyan)', padding: '0.6rem 1rem', borderRadius: '8px', display:'flex', alignItems:'center', gap:'6px', fontSize:'0.85rem', cursor:'pointer' }}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? 'Light' : 'Dark'}
+          </button>
         </div>
       </nav>
 

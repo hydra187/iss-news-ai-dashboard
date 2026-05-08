@@ -79,8 +79,8 @@ export const Chatbot = ({ dashboardData }) => {
             {messages.map((msg, i) => (
               <div key={i} style={{ 
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                background: msg.role === 'user' ? 'var(--accent-primary)' : 'var(--bg-primary)',
-                color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
+                background: msg.role === 'user' ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.07)',
+                color: msg.role === 'user' ? '#000' : 'var(--text-main)',
                 padding: '0.75rem 1rem', borderRadius: '12px',
                 maxWidth: '85%', fontSize: '0.9rem',
                 borderBottomRightRadius: msg.role === 'user' ? 0 : '12px',
@@ -91,7 +91,7 @@ export const Chatbot = ({ dashboardData }) => {
             ))}
             {isTyping && (
               <div style={{ 
-                alignSelf: 'flex-start', background: 'var(--bg-primary)', 
+                alignSelf: 'flex-start', background: 'rgba(255,255,255,0.07)', 
                 padding: '0.75rem 1rem', borderRadius: '12px',
                 borderBottomLeftRadius: 0, display: 'flex', gap: '4px'
               }}>
@@ -103,7 +103,7 @@ export const Chatbot = ({ dashboardData }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.5rem' }}>
+          <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '0.5rem' }}>
             <input 
               type="text" 
               value={input}
@@ -112,11 +112,11 @@ export const Chatbot = ({ dashboardData }) => {
               placeholder="Ask about ISS or News..."
               style={{ 
                 flex: 1, padding: '0.75rem', borderRadius: '8px', 
-                border: '1px solid var(--border-color)', background: 'var(--bg-primary)',
-                color: 'var(--text-primary)', outline: 'none'
+                border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                color: 'var(--text-main)', outline: 'none'
               }}
             />
-            <button className="btn btn-primary" style={{ padding: '0.75rem' }} onClick={handleSend}>
+            <button style={{ padding: '0.75rem 1rem', background: 'var(--accent-cyan)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', display:'flex', alignItems:'center' }} onClick={handleSend}>
               <Send size={18} />
             </button>
           </div>
