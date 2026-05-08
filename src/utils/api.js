@@ -1,5 +1,3 @@
-const ISS_BASE_URL = 'https://corsproxy.io/?http://api.open-notify.org';
-
 // Calculate distance using Haversine formula
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in km
@@ -15,7 +13,7 @@ export const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 export const fetchISSLocation = async () => {
   try {
-    const response = await fetch(`${ISS_BASE_URL}/iss-now.json`);
+    const response = await fetch(`/api/iss`);
     const data = await response.json();
     return {
       lat: parseFloat(data.iss_position.latitude),
@@ -30,7 +28,7 @@ export const fetchISSLocation = async () => {
 
 export const fetchAstronauts = async () => {
   try {
-    const response = await fetch(`${ISS_BASE_URL}/astros.json`);
+    const response = await fetch(`/api/astros`);
     const data = await response.json();
     return {
       count: data.number,
