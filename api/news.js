@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=1800');
     res.status(200).json(data);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch news' });
   }
 }

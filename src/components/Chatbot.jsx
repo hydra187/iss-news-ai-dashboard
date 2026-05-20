@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Trash2 } from 'lucide-react';
 import { generateChatResponse } from '../utils/chatbot';
 
@@ -28,7 +28,7 @@ export const Chatbot = ({ dashboardData }) => {
     try {
       const responseText = await generateChatResponse(userMsg.content, dashboardData, messages);
       setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error connecting to my brain. Please ensure VITE_AI_TOKEN is set correctly." }]);
     } finally {
       setIsTyping(false);
@@ -43,91 +43,53 @@ export const Chatbot = ({ dashboardData }) => {
     <>
       <button 
         className="chat-fab"
-        style={{ 
-          position: 'fixed', bottom: '2rem', right: '2rem', 
-          width: '60px', height: '60px', borderRadius: '30px', 
-          zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.3s'
-        }}
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? 'Close chat' : 'Open chat'}
       >
         {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
       </button>
 
       {isOpen && (
-        <div className="chat-window" style={{ 
-          position: 'fixed', bottom: '6rem', right: '2rem', 
-          width: '350px', height: '500px', 
-          background: 'var(--bg-secondary)', borderRadius: '20px',
-          zIndex: 100,
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
-          <div className="chat-header" style={{ 
-            padding: '1.25rem 1rem', color: 'white',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-          }}>
-            <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="chat-window">
+          <div className="chat-header">
+            <h3>
               <MessageSquare size={18} /> Dashboard AI
             </h3>
-            <button className="btn-icon" style={{ color: 'white' }} onClick={clearChat} title="Clear Chat">
+            <button className="btn-icon" onClick={clearChat} title="Clear Chat" aria-label="Clear chat">
               <Trash2 size={16} />
             </button>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="chat-messages">
             {messages.map((msg, i) => (
-              <div key={i} style={{ 
-                alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                background: msg.role === 'user' ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.07)',
-                color: msg.role === 'user' ? '#000' : 'var(--text-main)',
-                padding: '0.75rem 1rem', borderRadius: '12px',
-                maxWidth: '85%', fontSize: '0.9rem',
-                borderBottomRightRadius: msg.role === 'user' ? 0 : '12px',
-                borderBottomLeftRadius: msg.role === 'assistant' ? 0 : '12px',
-              }}>
+              <div key={i} className={`chat-message ${msg.role}`}>
                 {msg.content}
               </div>
             ))}
             {isTyping && (
-              <div style={{ 
-                alignSelf: 'flex-start', background: 'rgba(255,255,255,0.07)', 
-                padding: '0.75rem 1rem', borderRadius: '12px',
-                borderBottomLeftRadius: 0, display: 'flex', gap: '4px'
-              }}>
-                <span className="typing-dot" style={{ animation: 'bounce 1s infinite' }}>.</span>
-                <span className="typing-dot" style={{ animation: 'bounce 1s infinite 0.2s' }}>.</span>
-                <span className="typing-dot" style={{ animation: 'bounce 1s infinite 0.4s' }}>.</span>
+              <div className="chat-message assistant typing-indicator" aria-label="Dashboard AI is typing">
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '0.5rem' }}>
+          <div className="chat-composer">
             <input 
               type="text" 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask about ISS or News..."
-              style={{ 
-                flex: 1, padding: '0.75rem', borderRadius: '8px', 
-                border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
-                color: 'var(--text-main)', outline: 'none'
-              }}
             />
-            <button style={{ padding: '0.75rem 1rem', background: 'var(--accent-cyan)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', display:'flex', alignItems:'center' }} onClick={handleSend}>
+            <button onClick={handleSend} disabled={isTyping || !input.trim()} aria-label="Send message">
               <Send size={18} />
             </button>
           </div>
         </div>
       )}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
-        }
-      `}} />
     </>
   );
 };

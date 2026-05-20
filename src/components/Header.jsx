@@ -1,4 +1,3 @@
-import React from 'react';
 import { Moon, Sun, Activity } from 'lucide-react';
 
 export const Header = ({ theme, toggleTheme }) => {

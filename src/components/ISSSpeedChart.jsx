@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,7 +28,7 @@ export const ISSSpeedChart = ({ data }) => {
   }
 
   const chartData = {
-    labels: data.map((d, i) => {
+    labels: data.map((d) => {
       const date = new Date(d.timestamp * 1000);
       return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
     }),

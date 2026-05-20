@@ -48,7 +48,7 @@ export const fetchLocationName = async (lat, lon) => {
     if (data.error) return "Ocean / Unknown Area";
     
     return data.address.city || data.address.town || data.address.village || data.address.country || "Unknown Area";
-  } catch (error) {
+  } catch {
     return "Ocean / Unknown Area";
   }
 };
